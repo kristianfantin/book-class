@@ -23,6 +23,9 @@ public class AspectValidateDate {
             throw ServiceExceptionBuilder.throwInvalidParameterException("Start Date can't be greater than End Date");
         }
 
+        if (dto.getCapacity() <= 0) {
+            throw ServiceExceptionBuilder.throwInvalidParameterException("Capacity must be greater than 0");
+        }
     }
 
 

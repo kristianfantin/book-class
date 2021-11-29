@@ -15,31 +15,29 @@ import javax.persistence.Table;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "CLASS_ENTITY")
+@Table(name = "BOOK_ENTITY")
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Builder
-public class ClassEntity {
+public class BookEntity {
 
     @Id
     @Column(name = "ID")
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "NAME", nullable = false, length = 120)
-    private String className;
+    @Column(name = "CLASS_ID", nullable = false)
+    private Long classId;
 
-    @Column(name = "AUX_NAME", nullable = false, length = 120)
-    private String auxClassName;
+    @Column(name = "BOOKING_DATE", nullable = false)
+    private LocalDate bookingDate;
 
-    @Column(name = "START_DATE", nullable = false)
-    private LocalDate startDate;
+    @Column(name = "MEMBER_NAME", nullable = false, length = 120)
+    private String memberName;
 
-    @Column(name = "END_DATE", nullable = false)
-    private LocalDate endDate;
+    @Column(name = "AUX_MEMBER_NAME", nullable = false, length = 120)
+    private String auxMemberName;
 
-    @Column(name = "CAPACITY", nullable = false)
-    private Integer capacity;
 
 }
