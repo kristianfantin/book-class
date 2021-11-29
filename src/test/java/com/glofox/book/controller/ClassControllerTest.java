@@ -47,7 +47,7 @@ class ClassControllerTest {
     @Test
     void shouldCreateAClass() throws Exception {
         final ClassDTO build = build(
-                "pilates",
+                "taekwondo",
                 LocalDate.of(2021, 12, 1),
                 LocalDate.of(2021, 12, 20),
                 10);
@@ -108,7 +108,7 @@ class ClassControllerTest {
     @Test
     void shouldReturnAnInvalidParameterException() throws Exception {
         final ClassDTO build = build(
-                "pilates",
+                "tennis",
                 LocalDate.of(2021, 12, 15),
                 LocalDate.of(2021, 12, 14),
                 10);
