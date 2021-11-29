@@ -4,6 +4,7 @@ import com.glofox.book.exception.NotFoundException;
 import com.glofox.book.exception.ServiceException;
 
 import java.security.InvalidParameterException;
+import java.time.LocalDate;
 
 public class ServiceExceptionBuilder {
 
@@ -15,6 +16,10 @@ public class ServiceExceptionBuilder {
 
     public static ServiceException throwNotFoundException(final Long id) {
         return getServiceException(new NotFoundException(id));
+    }
+
+    public static ServiceException throwNotFoundException(final String className, final LocalDate localDate) {
+        return getServiceException(new NotFoundException(className, localDate));
     }
 
     public static ServiceException throwInvalidParameterException(final String s) {
