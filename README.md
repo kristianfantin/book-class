@@ -9,3 +9,7 @@ In order to see the created Stories, you can view the Project Kanban here:
 Running the Application: mvn spring-boot:run
 - Swagger is configured in order to Document the Rest Api: 
   - http://localhost:8080 (access th url after run the application)
+
+- Necessary: docker
+  - run REDIS
+    - docker run -it --name redis -p 6379:6379 redis:5.0.3 

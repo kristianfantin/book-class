@@ -3,6 +3,7 @@ package com.glofox.book.controller;
 import com.glofox.book.domain.model.BookEntity;
 import com.glofox.book.domain.service.BookService;
 import com.glofox.book.domain.service.ClassService;
+import com.glofox.book.domain.service.RedisService;
 import com.glofox.book.http.dto.BookingDTO;
 import com.glofox.book.http.dto.BookingResponseDTO;
 import io.swagger.annotations.Api;
@@ -31,6 +32,7 @@ public class BookingController {
 
     private final BookService service;
     private final ClassService classService;
+    private final RedisService redisService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
@@ -38,6 +40,7 @@ public class BookingController {
                                          @Validated
                                          @RequestBody BookingDTO dto) {
         final BookEntity bookEntity = service.save(dto);
+        redisService.clean();
         return toResponse(bookEntity, classService.findById(bookEntity.getClassId()));
     }
 
@@ -48,6 +51,7 @@ public class BookingController {
                        @RequestParam
                                Long id) {
         service.delete(id);
+        redisService.clean();
         return ResponseEntity.noContent().build();
     }
 

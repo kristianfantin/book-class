@@ -2,6 +2,7 @@ package com.glofox.book.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.glofox.book.config.AbstractIntegrationTest;
 import com.glofox.book.config.FunctionalTest;
 import com.glofox.book.controller.utils.ContentResultActions;
 import com.glofox.book.controller.utils.MockRequestBuilderUtils;
@@ -10,10 +11,12 @@ import com.glofox.book.http.dto.ClassDTO;
 import com.glofox.book.http.dto.ClassResponseDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -24,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @FunctionalTest
-class ClassControllerTest {
+class ClassControllerTest extends AbstractIntegrationTest {
 
     private static final String URL_TEMPLATE = "/classes";
     private static final int EXPECTED_QTY_CLASS = 1;
@@ -33,6 +36,9 @@ class ClassControllerTest {
     private final ObjectMapper mapper;
     private final ContentResultActions content;
     private final MockRequestBuilderUtils mockRequest;
+
+    @MockBean
+    private RestTemplate restTemplate;
 
     @Autowired
     ClassControllerTest(MockMvc mockMvc,

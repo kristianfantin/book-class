@@ -4,6 +4,7 @@ import com.glofox.book.aspect.ValidateDate;
 import com.glofox.book.domain.model.ClassEntity;
 import com.glofox.book.domain.service.BookService;
 import com.glofox.book.domain.service.ClassService;
+import com.glofox.book.domain.service.RedisService;
 import com.glofox.book.http._makers.MakeClass;
 import com.glofox.book.http.dto.BookingClassResponseDTO;
 import com.glofox.book.http.dto.ClassDTO;
@@ -11,6 +12,7 @@ import com.glofox.book.http.dto.ClassResponseDTO;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +39,7 @@ public class ClassesController {
 
     private final ClassService service;
     private final BookService bookService;
+    private final RedisService redisService;
 
     @ValidateDate
     @ResponseStatus(HttpStatus.CREATED)
@@ -45,9 +48,11 @@ public class ClassesController {
                                         @Validated
                                         @RequestBody ClassDTO dto) {
         final ClassEntity classEntity = service.save(dto);
+        redisService.clean();
         return toResponse(classEntity, bookService.findByClass(classEntity));
     }
 
+    @Cacheable("class-all")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<ClassResponseDTO> findAll(HttpServletRequest request) {
@@ -57,6 +62,7 @@ public class ClassesController {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable("class-id")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/id")
     public ClassResponseDTO findById(HttpServletRequest request, @RequestParam Long id) {
@@ -64,6 +70,7 @@ public class ClassesController {
         return toResponse(entity, bookService.findByClass(entity));
     }
 
+    @Cacheable("class-name")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/class-name")
     public List<ClassResponseDTO> findByClassName(HttpServletRequest request, @RequestParam String className) {
@@ -73,6 +80,7 @@ public class ClassesController {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable("class-date")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/date")
     public List<ClassResponseDTO> findByDate(HttpServletRequest request,
@@ -86,6 +94,7 @@ public class ClassesController {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable("class-name-date")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{className}/{date}")
     public List<ClassResponseDTO> findByClassNameAndDate(HttpServletRequest request,
