@@ -8,6 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -20,6 +21,7 @@ import java.lang.annotation.Target;
 @Inherited
 @ContextConfiguration(classes = {BookClassApplication.class})
 @ActiveProfiles("test")
+@Transactional
 @WebAppConfiguration
 @AutoConfigureMockMvc
 @SpringBootTest

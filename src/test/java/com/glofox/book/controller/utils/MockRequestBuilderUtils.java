@@ -36,6 +36,15 @@ public class MockRequestBuilderUtils {
         return MockMvcRequestBuilders.delete(urlTemplate);
     }
 
+    public MockHttpServletRequestBuilder delete(Map<String, Object> params, String urlTemplate) {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.delete(urlTemplate)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        params.forEach((nameParam, valueParam) -> request.param(nameParam, valueParam.toString()));
+
+        return request;
+    }
+
     public MockHttpServletRequestBuilder post(Object object, String urlTemplate)
             throws JsonProcessingException {
 

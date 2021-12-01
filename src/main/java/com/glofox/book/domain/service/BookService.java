@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static com.glofox.book.utils.StringUtils.removeAccents;
@@ -25,10 +24,6 @@ public class BookService {
     public BookEntity save(BookingDTO dto) {
         ClassEntity classEntity = classService.findByNameAndBetweenStartDateAndEndDate(dto.getClassName(), dto.getBookingDate());
         return repository.save(build(dto, classEntity));
-    }
-
-    public List<BookEntity> findByDate(LocalDate localDate) {
-        return repository.findByBookingDate(localDate);
     }
 
     private BookEntity build(BookingDTO dto, ClassEntity classEntity) {

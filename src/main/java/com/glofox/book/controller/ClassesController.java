@@ -87,7 +87,7 @@ public class ClassesController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/class-name/{className}/date/{date}")
+    @GetMapping("/{className}/{date}")
     public List<ClassResponseDTO> findByClassNameAndDate(HttpServletRequest request,
                                                          @RequestParam String className,
                                                          @RequestParam
