@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.glofox.book.config.FunctionalTest;
 import com.glofox.book.controller.utils.ContentResultActions;
 import com.glofox.book.controller.utils.MockRequestBuilderUtils;
+import com.glofox.book.http.dto.BookingDTO;
 import com.glofox.book.http.dto.ClassDTO;
 import com.glofox.book.http.dto.ClassResponseDTO;
 import org.junit.jupiter.api.Test;
@@ -46,11 +47,12 @@ class ClassControllerTest {
 
     @Test
     void shouldCreateAClass() throws Exception {
-        final ClassDTO build = build(
-                "taekwondo",
-                LocalDate.of(2021, 12, 1),
-                LocalDate.of(2021, 12, 20),
-                10);
+        final ClassDTO build = ClassDTO.builder()
+                .className("taekwondo")
+                .startDate(LocalDate.of(2021, 12, 1))
+                .endDate(LocalDate.of(2021, 12, 20))
+                .capacity(10)
+                .build();
 
         final MockHttpServletRequestBuilder request = mockRequest.post(build, URL_TEMPLATE);
         final ResultActions resultActions = mockMvc.perform(request);
@@ -66,12 +68,31 @@ class ClassControllerTest {
     }
 
     @Test
+    void shouldNotCreateAClassWithSameNameInAcrossPeriod() throws Exception {
+        shouldCreateAClass();
+
+        final ClassDTO build = ClassDTO.builder()
+                .className("taekwondo")
+                .startDate(LocalDate.of(2021, 12, 15))
+                .endDate(LocalDate.of(2021, 12, 25))
+                .capacity(15)
+                .build();
+
+        final MockHttpServletRequestBuilder request = mockRequest.post(build, URL_TEMPLATE);
+        final ResultActions resultActions = mockMvc.perform(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), resultActions.andReturn().getResponse().getStatus());
+        assertTrue(content.getContentAsString(resultActions).contains("taekwondo already exists in same period"));
+    }
+
+    @Test
     void shouldFindAClass() throws Exception {
-        final ClassDTO build = build(
-                "pilates",
-                LocalDate.of(2021, 12, 1),
-                LocalDate.of(2021, 12, 20),
-                10);
+        final ClassDTO build = ClassDTO.builder()
+                .className("pilates")
+                .startDate(LocalDate.of(2021, 12, 1))
+                .endDate(LocalDate.of(2021, 12, 20))
+                .capacity(10)
+                .build();
 
         final MockHttpServletRequestBuilder request = mockRequest.post(build, URL_TEMPLATE);
         final ResultActions resultActions = mockMvc.perform(request);
@@ -107,11 +128,12 @@ class ClassControllerTest {
 
     @Test
     void shouldReturnAnInvalidParameterException() throws Exception {
-        final ClassDTO build = build(
-                "tennis",
-                LocalDate.of(2021, 12, 15),
-                LocalDate.of(2021, 12, 14),
-                10);
+        final ClassDTO build = ClassDTO.builder()
+                .className("tennis")
+                .startDate(LocalDate.of(2021, 12, 15))
+                .endDate(LocalDate.of(2021, 12, 14))
+                .capacity(10)
+                .build();
 
         final MockHttpServletRequestBuilder request = mockRequest.post(build, URL_TEMPLATE);
         final ResultActions resultActions = mockMvc.perform(request);
@@ -119,13 +141,143 @@ class ClassControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), resultActions.andReturn().getResponse().getStatus());
     }
 
-    private ClassDTO build(String className, LocalDate startDate, LocalDate endDate, int capacity) {
-        return ClassDTO.builder()
-                .className(className)
-                .startDate(startDate)
-                .endDate(endDate)
-                .capacity(capacity)
-                .build();
+    @Test
+    void shouldFindAClassByName() throws Exception {
+        shouldCreateAClass();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("className", "TAEKWONDO");
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/class-name");
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        final MockHttpServletRequestBuilder getAllClass = mockRequest.get(URL_TEMPLATE);
+        final ResultActions performAll = mockMvc.perform(getAllClass);
+        assertEquals(HttpStatus.OK.value(), performAll.andReturn().getResponse().getStatus());
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(performAll),
+                new TypeReference<>() { });
+        assertEquals(EXPECTED_QTY_CLASS, list.size());
+    }
+
+    @Test
+    void shouldNotFindAClassByName() throws Exception {
+        shouldCreateAClass();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("className", "karate");
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/class-name");
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    void shouldFindAClassByDate() throws Exception {
+        shouldCreateAClass();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("localDate", LocalDate.of(2021,12,5));
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/date");
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(EXPECTED_QTY_CLASS, list.size());
+    }
+
+    @Test
+    void shouldNotFindAClassByDate() throws Exception {
+        shouldCreateAClass();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("localDate", LocalDate.of(2021,12,21));
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/date");
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    void shouldNotFindAClassByNameAndDateWhenThereIsNoBook() throws Exception {
+        shouldCreateAClass();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("className", "taekwondo");
+        params.put("date", LocalDate.of(2021,12,5));
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/taekwondo/2021-12-05" );
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    void shouldFindAClassByNameAndDateWhenThereIsBook() throws Exception {
+        shouldCreateAClass();
+        createBook(BookingDTO.builder()
+                .className("taekwondo")
+                .bookingDate(LocalDate.of(2021, 12, 5))
+                .memberName("kristian")
+                .build());
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("className", "taekwondo");
+        params.put("date", LocalDate.of(2021,12,5));
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/taekwondo/2021-12-05" );
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(EXPECTED_QTY_CLASS, list.size());
+    }
+
+    @Test
+    void shouldFindAClassByNameAndDateWhenThereIsALotOfBooks() throws Exception {
+        shouldCreateAClass();
+        createBook(BookingDTO.builder()
+                .className("taekwondo")
+                .bookingDate(LocalDate.of(2021, 12, 5))
+                .memberName("kristian")
+                .build());
+        createBook(BookingDTO.builder()
+                .className("taekwondo")
+                .bookingDate(LocalDate.of(2021, 12, 5))
+                .memberName("john")
+                .build());
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("className", "taekwondo");
+        params.put("date", LocalDate.of(2021,12,5));
+
+        final MockHttpServletRequestBuilder getClass = mockRequest.get(params, URL_TEMPLATE + "/taekwondo/2021-12-05" );
+        final ResultActions perform = mockMvc.perform(getClass);
+        assertEquals(HttpStatus.OK.value(), perform.andReturn().getResponse().getStatus());
+
+        List<ClassResponseDTO> list = mapper.readValue(content.getContentAsString(perform),
+                new TypeReference<>() { });
+        assertEquals(EXPECTED_QTY_CLASS, list.size());
+        assertEquals(2, list.get(0).getBookingClass().get(0).getBookings().size());
+    }
+
+    private void createBook(BookingDTO dto) throws Exception {
+        final MockHttpServletRequestBuilder request = mockRequest.post(dto, "/bookings");
+        final ResultActions resultActions = mockMvc.perform(request);
+        assertEquals(HttpStatus.CREATED.value(), resultActions.andReturn().getResponse().getStatus());
     }
 
 }
